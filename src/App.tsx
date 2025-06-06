@@ -61,7 +61,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: {
   }
   
   if (allowedRoles.length > 0 && user && !allowedRoles.includes(user.userType)) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to="/home\" replace />;
   }
   
   return <>{children}</>;
@@ -93,15 +93,15 @@ function App() {
         <Routes>
           {/* Auth routes */}
           <Route path="/auth/login" element={
-            isAuthenticated ? <Navigate to="/home" replace /> : <LoginPage />
+            isAuthenticated ? <Navigate to="/home\" replace /> : <LoginPage />
           } />
           <Route path="/auth/register" element={
-            isAuthenticated ? <Navigate to="/home" replace /> : <RegisterPage />
+            isAuthenticated ? <Navigate to="/home\" replace /> : <RegisterPage />
           } />
           
           {/* Public routes */}
           <Route path="/" element={
-            isAuthenticated ? <Navigate to="/home" replace /> : <Navigate to="/auth/login" replace />
+            isAuthenticated ? <Navigate to="/home\" replace /> : <Navigate to="/auth/login" replace />
           } />
           
           {/* Protected routes */}
