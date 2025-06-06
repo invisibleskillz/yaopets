@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,7 @@ import { PawPrint, MapPin, ArrowLeft, X, Check } from "lucide-react";
 import NativeBottomNavigation from "@/components/mobile/NativeBottomNavigation";
 
 export default function NewPetPage() {
-  const [, navigate] = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -71,21 +71,6 @@ export default function NewPetPage() {
     if (photoInputRef.current) {
       photoInputRef.current.value = '';
     }
-  };
-
-  // Save pet to localStorage
-  const savePetLocally = (petObj: any) => {
-    let pets = [];
-    const petsRaw = localStorage.getItem("yaopets_local_pets");
-    if (petsRaw) {
-      try {
-        pets = JSON.parse(petsRaw);
-      } catch {
-        pets = [];
-      }
-    }
-    pets.unshift(petObj);
-    localStorage.setItem("yaopets_local_pets", JSON.stringify(pets.slice(0, 20)));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -136,28 +121,7 @@ export default function NewPetPage() {
         content += '\n\nUseful info:\n' + petUsefulInfo;
       }
 
-      // Prepare pet object for local storage
-      const petObj = {
-        id: Date.now(),
-        petName,
-        petSpecies,
-        petSpeciesDisplay,
-        petSize,
-        petSizeDisplay,
-        petAge,
-        petAgeDisplay,
-        petLocation,
-        contactPhone,
-        content,
-        description: petDescription,
-        usefulInfo: petUsefulInfo,
-        createdAt: new Date().toISOString(),
-        status: "adoption",
-        photo: photoPreview || null,
-      };
-
-      savePetLocally(petObj);
-
+      // Simulate saving (no localStorage)
       setFormSuccess(true);
       toast({
         title: 'Pet registered successfully',

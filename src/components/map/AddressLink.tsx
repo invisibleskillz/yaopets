@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 type AddressLinkProps = {
@@ -16,7 +16,7 @@ export default function AddressLink({ address, lat, lng, className }: AddressLin
     : `/map?address=${encodeURIComponent(address)}`;
 
   return (
-    <Link href={mapUrl}>
+    <Link to={mapUrl}>
       <span
         className={cn(
           "inline-flex items-center text-primary hover:underline",

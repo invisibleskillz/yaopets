@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 
 type DonationModalProps = {
@@ -19,7 +19,7 @@ export default function VetHelpDonationModal({
   onSuccess 
 }: DonationModalProps) {
   const { toast } = useToast();
-  const [, navigate] = useLocation();
+  const navigate = useNavigate();
 
   // Predefined quick donation values
   const predefinedAmounts = [10, 20, 50, 100];

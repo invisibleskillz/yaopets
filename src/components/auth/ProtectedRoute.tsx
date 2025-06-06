@@ -1,6 +1,6 @@
 import { ReactNode, useEffect } from "react";
-import { useLocation } from "wouter";
-import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/store/authStore";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
@@ -8,8 +8,8 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
-  const [, setLocation] = useLocation();
+  const { isAuthenticated, isLoading } = useAuthStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isLoading) return;
@@ -21,14 +21,14 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
       loginTimestamp && Date.now() - Number(loginTimestamp) < 10000;
 
     if (!isAuthenticated && !(isLoginRedirect && isRecentLogin)) {
-      setLocation("/auth/login");
+      navigate("/auth/login");
     }
 
     if (isAuthenticated && isLoginRedirect) {
       sessionStorage.removeItem("isRedirectingAfterLogin");
       sessionStorage.removeItem("loginTimestamp");
     }
-  }, [isAuthenticated, isLoading, setLocation]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   if (isLoading) {
     return (

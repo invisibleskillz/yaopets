@@ -3,8 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "wouter";
+import { useAuthStore } from "@/store/authStore";
+import { useNavigate } from "react-router-dom";
 
 interface AdoptionChatModalProps {
   isOpen: boolean;
@@ -35,7 +35,7 @@ export default function AdoptionChatModal({
   item 
 }: AdoptionChatModalProps) {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [message, setMessage] = useState<string>("");
   const [isSending, setIsSending] = useState(false);
 

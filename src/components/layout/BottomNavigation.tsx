@@ -1,11 +1,11 @@
-import { Link, useLocation } from "wouter";
+import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import CreatePostModal from "@/components/modals/CreatePostModal";
 import { Home, PawPrint, PlusSquare, Heart, User } from "lucide-react";
 
 export default function BottomNavigation() {
-  const [location] = useLocation();
+  const location = useLocation();
   const [createPostModalOpen, setCreatePostModalOpen] = useState(false);
 
   // Navigation items with icons and labels
@@ -24,12 +24,12 @@ export default function BottomNavigation() {
         <div className="flex justify-around items-center px-2 py-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location === item.path || (item.path === "/" && location === "/home");
+            const isActive = location.pathname === item.path || (item.path === "/" && location.pathname === "/home");
 
             return (
               <Link
                 key={item.path}
-                href={item.isAddButton ? "#" : item.path}
+                to={item.isAddButton ? "#" : item.path}
                 onClick={(e) => {
                   if (item.isAddButton) {
                     e.preventDefault();

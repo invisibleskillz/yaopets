@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { PawPrint } from "lucide-react";
 
 type CommentItemProps = {
@@ -28,13 +28,13 @@ const CommentItem: React.FC<CommentItemProps> = ({
   userId,
   onLikeToggle
 }) => {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [isLikedState, setIsLikedState] = useState(isLiked);
   const [likesCountState, setLikesCountState] = useState(likesCount);
 
   const goToUserProfile = () => {
     if (userId) {
-      setLocation(`/profile/${userId}`);
+      navigate(`/profile/${userId}`);
     }
   };
 

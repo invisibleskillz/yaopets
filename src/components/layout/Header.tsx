@@ -1,5 +1,5 @@
-import { Link } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
+import { useAuthStore } from "@/store/authStore";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { generateInitials } from "@/lib/utils";
@@ -18,7 +18,7 @@ export default function Header({
   showBack = false,
   onBack
 }: HeaderProps) {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
 
   return (
     <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
@@ -38,17 +38,17 @@ export default function Header({
         </div>
         
         <div className="flex items-center space-x-4">
-          <Link href="/store">
+          <Link to="/store">
             <Button variant="ghost" size="icon" className="text-black hover:text-black/80">
               <Store size={32} />
             </Button>
           </Link>
-          <Link href="/chat">
+          <Link to="/chat">
             <Button variant="ghost" size="icon" className="text-black hover:text-black/80">
               <MessageCircle size={32} />
             </Button>
           </Link>
-          <Link href="/profile">
+          <Link to="/profile">
             <Avatar className="h-9 w-9 border border-gray-300">
               {user?.profileImage ? (
                 <AvatarImage 
