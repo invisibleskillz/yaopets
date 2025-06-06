@@ -5,8 +5,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { useLocation } from 'wouter';
+import { useAuthStore } from '@/store/authStore';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -22,11 +22,11 @@ const createPostSchema = z.object({
 type CreatePostFormValues = z.infer<typeof createPostSchema>;
 
 export default function CreatePostButton({ className = '' }) {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   
   const form = useForm<CreatePostFormValues>({
     resolver: zodResolver(createPostSchema),
@@ -76,7 +76,7 @@ export default function CreatePostButton({ className = '' }) {
   
   if (!user) {
     return (
-      <Button className={className} onClick={() => setLocation('/auth/login')}>
+      <Button className={className} onClick={() => navigate('/auth/login')}>
         Sign in to share
       </Button>
     );

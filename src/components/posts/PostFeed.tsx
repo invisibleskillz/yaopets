@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/authStore';
 import UserLevelBadge from '@/components/user/UserLevelBadge';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -41,51 +40,38 @@ export default function PostFeed({
   showUserInfo = true,
   className = ""
 }: PostFeedProps) {
-  const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [page, setPage] = useState(1);
 
-  // Query for posts (simulate/demo: no backend interaction)
-  const { 
-    data, 
-    isLoading, 
-    isError, 
-    error, 
-    refetch 
-  } = useQuery({
-    queryKey: ['/api/posts', { page, limit, userId }],
-    enabled: false, // Disable auto-fetch, simulate data
-    queryFn: async () => {
-      // Simulate demo data
-      return {
-        data: [
-          {
-            id: 1,
-            userId: 1,
-            username: "johndoe",
-            userName: "John Doe",
-            userPhotoUrl: "",
-            userLevel: "Beginner",
-            content: "This is a demo post.",
-            mediaUrls: [],
-            location: { address: "New York, NY" },
-            likesCount: 5,
-            commentsCount: 2,
-            createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-            isLiked: false,
-            isSaved: false,
-            isFavorite: false,
-            likes: 5,
-            comments: 2,
-          }
-        ],
-        pagination: {
-          page,
-          pages: 1,
-        }
-      };
+  // Mock data for demo
+  const mockData = {
+    data: [
+      {
+        id: 1,
+        userId: 1,
+        username: "johndoe",
+        userName: "John Doe",
+        userPhotoUrl: "",
+        userLevel: "Beginner",
+        content: "This is a demo post.",
+        mediaUrls: [],
+        location: { address: "New York, NY" },
+        likesCount: 5,
+        commentsCount: 2,
+        createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+        isLiked: false,
+        isSaved: false,
+        isFavorite: false,
+        likes: 5,
+        comments: 2,
+      }
+    ],
+    pagination: {
+      page,
+      pages: 1,
     }
-  });
+  };
 
   // Like a post (demo only)
   const likePost = (postId: number) => {
@@ -101,12 +87,11 @@ export default function PostFeed({
       title: "Liked post (demo)",
       description: "You liked this post (demo only)."
     });
-    // In a real app, update state here
   };
 
   // Go to user profile
   const goToUserProfile = (userId: number) => {
-    setLocation(`/profile/${userId}`);
+    navigate(`/profile/${userId}`);
   };
 
   // Get main image URL of post
@@ -146,64 +131,10 @@ export default function PostFeed({
     }
   };
 
-  // Loading skeleton
-  if (isLoading) {
-    return (
-      <div className="space-y-6 pt-2">
-        {[1, 2, 3].map(i => (
-          <Card key={i} className="border-0 shadow-sm overflow-hidden">
-            <div className="p-4 flex items-center">
-              <Skeleton className="h-10 w-10 rounded-full mr-3" />
-              <div>
-                <Skeleton className="h-4 w-40" />
-                <Skeleton className="h-3 w-20 mt-1" />
-              </div>
-            </div>
-            <Skeleton className="h-[300px] w-full" />
-            <div className="p-4">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4 mt-2" />
-            </div>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
-  // Error state
-  if (isError) {
-    return (
-      <div className="text-center p-8 bg-red-50 rounded-lg">
-        <p className="text-red-500">Error loading posts</p>
-        <p className="text-sm text-gray-500">{String(error)}</p>
-        <button 
-          className="mt-3 px-4 py-2 bg-primary text-white rounded-md"
-          onClick={() => refetch()}
-        >
-          Try again
-        </button>
-      </div>
-    );
-  }
-
-  // No posts
-  if (!data?.data || data.data.length === 0) {
-    return (
-      <div className="text-center p-8 bg-gray-50 rounded-lg">
-        <p className="text-gray-500">No posts found</p>
-        {user && (
-          <p className="text-sm text-primary mt-2">
-            Be the first to share something!
-          </p>
-        )}
-      </div>
-    );
-  }
-
   // Render post list
   return (
     <div className={`space-y-6 pt-2 ${className}`}>
-      {data.data.map((post: Post) => (
+      {mockData.data.map((post: Post) => (
         <Card key={post.id} className="border-0 shadow-sm overflow-hidden">
           {/* Post header */}
           {showUserInfo && (
@@ -320,36 +251,6 @@ export default function PostFeed({
           </div>
         </Card>
       ))}
-      {/* Simple pagination */}
-      {data.pagination && (
-        <div className="flex justify-between mt-4">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage(p => Math.max(p - 1, 1))}
-            className={`px-4 py-2 rounded-md ${
-              page === 1 
-                ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                : 'bg-primary text-white hover:bg-primary/90'
-            }`}
-          >
-            Previous
-          </button>
-          <span className="py-2">
-            Page {page} of {data.pagination.pages}
-          </span>
-          <button
-            disabled={page === data.pagination.pages}
-            onClick={() => setPage(p => p + 1)}
-            className={`px-4 py-2 rounded-md ${
-              page === data.pagination.pages
-                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                : 'bg-primary text-white hover:bg-primary/90'
-            }`}
-          >
-            Next
-          </button>
-        </div>
-      )}
     </div>
   );
 }

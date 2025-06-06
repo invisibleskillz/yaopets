@@ -14,19 +14,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     if (isLoading) return;
 
-    // Check if just redirected after login
-    const isLoginRedirect = sessionStorage.getItem("isRedirectingAfterLogin") === "true";
-    const loginTimestamp = sessionStorage.getItem("loginTimestamp");
-    const isRecentLogin =
-      loginTimestamp && Date.now() - Number(loginTimestamp) < 10000;
-
-    if (!isAuthenticated && !(isLoginRedirect && isRecentLogin)) {
+    if (!isAuthenticated) {
       navigate("/auth/login");
-    }
-
-    if (isAuthenticated && isLoginRedirect) {
-      sessionStorage.removeItem("isRedirectingAfterLogin");
-      sessionStorage.removeItem("loginTimestamp");
     }
   }, [isAuthenticated, isLoading, navigate]);
 

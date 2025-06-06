@@ -36,7 +36,6 @@ const mockUsers: User[] = [
     profileImage: '',
     city: 'New York',
     bio: 'Pet lover and volunteer',
-    website: 'johndoe.com',
     userType: 'tutor',
     points: 150,
     level: 'Beginner'
@@ -49,7 +48,6 @@ const mockUsers: User[] = [
     profileImage: '',
     city: 'Los Angeles',
     bio: 'Animal rescue volunteer',
-    website: '',
     userType: 'volunteer',
     points: 300,
     level: 'Advanced'
@@ -63,14 +61,16 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
 
-      login: async (email: string, password: string): Promise<User> => {
+      login: async (email: string, password: string) => {
         set({ isLoading: true });
         
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000));
         
+        // Find user by email
         const user = mockUsers.find(u => u.email === email);
-        if (!user) {
+        
+        if (!user || password !== 'password') {
           set({ isLoading: false });
           throw new Error('Invalid credentials');
         }
@@ -84,12 +84,19 @@ export const useAuthStore = create<AuthState>()(
         return user;
       },
 
-      register: async (userData: Partial<User>): Promise<User> => {
+      register: async (userData: Partial<User>) => {
         set({ isLoading: true });
         
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000));
         
+        // Check if email already exists
+        const existingUser = mockUsers.find(u => u.email === userData.email);
+        if (existingUser) {
+          set({ isLoading: false });
+          throw new Error('Email already exists');
+        }
+
         const newUser: User = {
           id: Date.now(),
           name: userData.name || '',
@@ -98,12 +105,13 @@ export const useAuthStore = create<AuthState>()(
           profileImage: userData.profileImage || '',
           city: userData.city || '',
           bio: userData.bio || '',
-          website: userData.website || '',
           userType: userData.userType || 'tutor',
           points: 0,
           level: 'Beginner'
         };
 
+        mockUsers.push(newUser);
+        
         set({ 
           user: newUser, 
           isAuthenticated: true, 
@@ -126,15 +134,22 @@ export const useAuthStore = create<AuthState>()(
         if (!user) return;
         
         const updatedUser = { ...user, ...data };
+        
+        // Update in mock users array
+        const userIndex = mockUsers.findIndex(u => u.id === user.id);
+        if (userIndex !== -1) {
+          mockUsers[userIndex] = updatedUser;
+        }
+        
         set({ user: updatedUser });
       }
     }),
     {
-      name: 'yaopets-auth',
+      name: 'auth-storage',
       partialize: (state) => ({ 
         user: state.user, 
         isAuthenticated: state.isAuthenticated 
-      })
+      }),
     }
   )
 );

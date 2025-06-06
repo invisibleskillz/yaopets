@@ -38,6 +38,7 @@ export default function AdoptionChatModal({
   const { user } = useAuthStore();
   const [message, setMessage] = useState<string>("");
   const [isSending, setIsSending] = useState(false);
+  const navigate = useNavigate();
 
   // Prefill the message based on type (pet or item)
   React.useEffect(() => {
