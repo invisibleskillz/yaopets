@@ -1,227 +1,78 @@
-import { Switch, Route } from "wouter";
-import { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/context/AuthContext";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import NotFound from "@/pages/not-found";
+import { useAuthStore } from '@/store/authStore';
+import { Capacitor } from '@capacitor/core';
+import { useEffect } from 'react';
+
+// Layout components
+import MobileStatusBar from "@/components/mobile/MobileStatusBar";
+import NativePushNotifications from "@/components/mobile/PushNotifications";
+import NativeBottomNavigation from "@/components/mobile/NativeBottomNavigation";
+
+// Auth pages
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 
-import EnhancedProfilePage from "@/pages/EnhancedProfilePage";
+// Main pages
 import PetFeed from "@/pages/PetFeed";
-import PostCreationPage from "@/pages/CreatePostPage";
 import PetsPage from "@/pages/PetsPage";
-import PetDetailsPage from "@/pages/PetDetailsPage";
 import DonationsPage from "@/pages/DonationsPage";
-import NewPetPageReplacement from "@/pages/NewPetPageReplacement";
 import VetHelpPage from "@/pages/VetHelpPage";
-import VetProfilePage from "@/pages/VetProfilePage";
+import EnhancedProfilePage from "@/pages/EnhancedProfilePage";
 import SettingsPage from "@/pages/SettingsPage";
+import NotFound from "@/pages/not-found";
+
+// Detail pages
+import PetDetailsPage from "@/pages/PetDetailsPage";
+import VetProfilePage from "@/pages/VetProfilePage";
+import NewPetPageReplacement from "@/pages/NewPetPageReplacement";
+import CreatePostPage from "@/pages/CreatePostPage";
+
+// Chat pages
 import ChatsListPage from "@/pages/ChatsListPage";
 import ChatPage from "@/pages/ChatPage";
+
+// Store pages
 import StorePage from "@/pages/StorePage";
 import CheckoutPage from "@/pages/CheckoutPage";
 import PaymentSuccessPage from "@/pages/PaymentSuccessPage";
 
-import MobileStatusBar from "@/components/mobile/MobileStatusBar";
-import NativePushNotifications from "@/components/mobile/PushNotifications";
-import NativeBottomNavigation from "@/components/mobile/NativeBottomNavigation";
-import { useAuthMiddleware } from "@/middleware/auth-middleware";
-import { Capacitor } from '@capacitor/core';
-import CreatePostModal from "@/components/modals/CreatePostModal";
-import { useLocation } from "wouter";
+// Admin pages
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminPets from "@/pages/admin/AdminPets";
+import AdminReports from "@/pages/admin/AdminReports";
 
-// Componente de redirecionamento de /chats para /chat
-function RedirectToChat() {
-  const [, setLocation] = useLocation();
+// Vet dashboard pages
+import VetDashboard from "@/pages/vet/VetDashboard";
+import VetAppointments from "@/pages/vet/VetAppointments";
+import VetPatients from "@/pages/vet/VetPatients";
+
+// Protected route component
+const ProtectedRoute = ({ children, allowedRoles = [] }: { 
+  children: React.ReactNode, 
+  allowedRoles?: string[] 
+}) => {
+  const { isAuthenticated, user } = useAuthStore();
   
-  // Usar useEffect para fazer o redirecionamento
-  useEffect(() => {
-    setLocation('/chat');
-  }, [setLocation]);
+  if (!isAuthenticated) {
+    return <Navigate to="/auth/login" replace />;
+  }
   
-  return null;
-}
-
-// Página de criação de publicação
-function CreatePostPage() {
-  const [isOpen, setIsOpen] = useState(true);
-  const [, navigate] = useLocation();
+  if (allowedRoles.length > 0 && user && !allowedRoles.includes(user.userType)) {
+    return <Navigate to="/home" replace />;
+  }
   
-  // Redirecionar para a página inicial quando o modal for fechado
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    if (!open) {
-      navigate('/');
-    }
-  };
-  
-  return (
-    <div className="h-screen flex items-center justify-center">
-      <CreatePostModal open={isOpen} onOpenChange={handleOpenChange} />
-    </div>
-  );
-}
-
-
-
-function AppRoutes() {
-  return (
-    <Switch>
-      {/* Login */}
-      <Route path="/">
-        <LoginPage />
-      </Route>
-      <Route path="/auth/login">
-        <LoginPage />
-      </Route>
-      <Route path="/auth/register">
-        <RegisterPage />
-      </Route>
-      
-      {/* Páginas principais */}
-      <Route path="/home">
-        <ProtectedRoute>
-          <div className="pb-16">
-            <PetFeed />
-            <NativeBottomNavigation />
-          </div>
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/pets">
-        <ProtectedRoute>
-          <div className="pb-16">
-            <PetsPage />
-            <NativeBottomNavigation />
-          </div>
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/donations">
-        <ProtectedRoute>
-          <div className="pb-16">
-            <DonationsPage />
-            <NativeBottomNavigation />
-          </div>
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/vet-help">
-        <ProtectedRoute>
-          <div className="pb-16">
-            <VetHelpPage />
-            <NativeBottomNavigation />
-          </div>
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/vet-profile/:id">
-        <ProtectedRoute>
-          <VetProfilePage />
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/store">
-        <ProtectedRoute>
-          <div className="pb-16">
-            <StorePage />
-            <NativeBottomNavigation />
-          </div>
-        </ProtectedRoute>
-      </Route>
-      
-      {/* Redirect /chats to /chat */}
-      <Route path="/chats">
-        <RedirectToChat />
-      </Route>
-      
-      <Route path="/chat">
-        <ProtectedRoute>
-          <div className="pb-16">
-            <ChatsListPage />
-            <NativeBottomNavigation />
-          </div>
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/chat/:id">
-        <ProtectedRoute>
-          <div className="pb-16">
-            <ChatPage />
-            <NativeBottomNavigation />
-          </div>
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/profile">
-        <div className="pb-16">
-          <EnhancedProfilePage />
-          <NativeBottomNavigation />
-        </div>
-      </Route>
-      
-      <Route path="/profile/:id">
-        <div className="pb-16">
-          <EnhancedProfilePage />
-          <NativeBottomNavigation />
-        </div>
-      </Route>
-      
-      <Route path="/settings">
-        <ProtectedRoute>
-          <div className="pb-16">
-            <SettingsPage />
-            <NativeBottomNavigation />
-          </div>
-        </ProtectedRoute>
-      </Route>
-      
-      {/* Páginas auxiliares */}
-      <Route path="/create-post">
-        <ProtectedRoute>
-          <div className="pb-16">
-            <PostCreationPage />
-            <NativeBottomNavigation />
-          </div>
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/new-pet">
-        <ProtectedRoute>
-          <NewPetPageReplacement />
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/pet-details/:id">
-        <ProtectedRoute>
-          <PetDetailsPage />
-        </ProtectedRoute>
-      </Route>
-      
-      {/* Páginas de pagamento */}
-      <Route path="/checkout">
-        <CheckoutPage />
-      </Route>
-      
-      <Route path="/payment-success">
-        <PaymentSuccessPage />
-      </Route>
-
-      {/* Fallback */}
-      <Route>
-        <NotFound />
-      </Route>
-    </Switch>
-  );
-}
+  return <>{children}</>;
+};
 
 function App() {
-  // Adicionar classe para identificar se é um aplicativo nativo
+  const { isAuthenticated } = useAuthStore();
+  
+  // Add class for native app detection
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
-      // Adiciona classes para identificar o tipo de plataforma
       document.body.classList.add('native-app');
       
       if (Capacitor.getPlatform() === 'ios') {
@@ -231,29 +82,208 @@ function App() {
       }
     }
   }, []);
-  return (
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <MobileStatusBar />
-        <NativePushNotifications />
-        <AuthMiddleware />
-        <AppRoutes />
-      </TooltipProvider>
-    </AuthProvider>
-  );
-}
 
-/**
- * Componente que aplica o middleware de autenticação em toda a aplicação
- * Gerencia redirecionamentos e verificações de autenticação
- */
-function AuthMiddleware() {
-  // Aplicar o middleware - ele só precisa ser montado para funcionar através dos efeitos
-  useAuthMiddleware();
-  
-  // Este componente não renderiza nada visualmente
-  return null;
+  return (
+    <TooltipProvider>
+      <Toaster />
+      <MobileStatusBar />
+      <NativePushNotifications />
+      
+      <Router>
+        <Routes>
+          {/* Auth routes */}
+          <Route path="/auth/login" element={
+            isAuthenticated ? <Navigate to="/home" replace /> : <LoginPage />
+          } />
+          <Route path="/auth/register" element={
+            isAuthenticated ? <Navigate to="/home" replace /> : <RegisterPage />
+          } />
+          
+          {/* Public routes */}
+          <Route path="/" element={
+            isAuthenticated ? <Navigate to="/home" replace /> : <Navigate to="/auth/login" replace />
+          } />
+          
+          {/* Protected routes */}
+          <Route path="/home" element={
+            <ProtectedRoute>
+              <div className="pb-16">
+                <PetFeed />
+                <NativeBottomNavigation />
+              </div>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/pets" element={
+            <ProtectedRoute>
+              <div className="pb-16">
+                <PetsPage />
+                <NativeBottomNavigation />
+              </div>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/donations" element={
+            <ProtectedRoute>
+              <div className="pb-16">
+                <DonationsPage />
+                <NativeBottomNavigation />
+              </div>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/vet-help" element={
+            <ProtectedRoute>
+              <div className="pb-16">
+                <VetHelpPage />
+                <NativeBottomNavigation />
+              </div>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <div className="pb-16">
+                <EnhancedProfilePage />
+                <NativeBottomNavigation />
+              </div>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/profile/:id" element={
+            <ProtectedRoute>
+              <div className="pb-16">
+                <EnhancedProfilePage />
+                <NativeBottomNavigation />
+              </div>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <div className="pb-16">
+                <SettingsPage />
+                <NativeBottomNavigation />
+              </div>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/chat" element={
+            <ProtectedRoute>
+              <div className="pb-16">
+                <ChatsListPage />
+                <NativeBottomNavigation />
+              </div>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/chat/:id" element={
+            <ProtectedRoute>
+              <div className="pb-16">
+                <ChatPage />
+                <NativeBottomNavigation />
+              </div>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/store" element={
+            <ProtectedRoute>
+              <div className="pb-16">
+                <StorePage />
+                <NativeBottomNavigation />
+              </div>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/create-post" element={
+            <ProtectedRoute>
+              <div className="pb-16">
+                <CreatePostPage />
+                <NativeBottomNavigation />
+              </div>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/new-pet" element={
+            <ProtectedRoute>
+              <NewPetPageReplacement />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/pet-details/:id" element={
+            <ProtectedRoute>
+              <PetDetailsPage />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/vet-profile/:id" element={
+            <ProtectedRoute>
+              <VetProfilePage />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/checkout" element={
+            <ProtectedRoute>
+              <CheckoutPage />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/payment-success" element={
+            <ProtectedRoute>
+              <PaymentSuccessPage />
+            </ProtectedRoute>
+          } />
+          
+          {/* Admin routes */}
+          <Route path="/admin" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/users" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminUsers />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/pets" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminPets />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/reports" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminReports />
+            </ProtectedRoute>
+          } />
+          
+          {/* Vet dashboard routes */}
+          <Route path="/vet/dashboard" element={
+            <ProtectedRoute allowedRoles={['veterinarian']}>
+              <VetDashboard />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/vet/appointments" element={
+            <ProtectedRoute allowedRoles={['veterinarian']}>
+              <VetAppointments />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/vet/patients" element={
+            <ProtectedRoute allowedRoles={['veterinarian']}>
+              <VetPatients />
+            </ProtectedRoute>
+          } />
+          
+          {/* 404 route */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Router>
+    </TooltipProvider>
+  );
 }
 
 export default App;
