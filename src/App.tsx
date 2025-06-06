@@ -2,12 +2,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuthStore } from '@/store/authStore';
-import { Capacitor } from '@capacitor/core';
 import { useEffect } from 'react';
 
 // Layout components
-import MobileStatusBar from "@/components/mobile/MobileStatusBar";
-import NativePushNotifications from "@/components/mobile/PushNotifications";
 import NativeBottomNavigation from "@/components/mobile/NativeBottomNavigation";
 
 // Auth pages
@@ -72,22 +69,12 @@ function App() {
   
   // Add class for native app detection
   useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
-      document.body.classList.add('native-app');
-      
-      if (Capacitor.getPlatform() === 'ios') {
-        document.body.classList.add('ios-app');
-      } else if (Capacitor.getPlatform() === 'android') {
-        document.body.classList.add('android-app');
-      }
-    }
+    document.body.classList.add('web-app');
   }, []);
 
   return (
     <TooltipProvider>
       <Toaster />
-      <MobileStatusBar />
-      <NativePushNotifications />
       
       <Router>
         <Routes>

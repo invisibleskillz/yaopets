@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation, Link } from 'wouter';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, PawPrint, PlusCircle, Heart, Stethoscope, Settings } from 'lucide-react';
 
 /**
@@ -13,67 +13,86 @@ import { Home, PawPrint, PlusCircle, Heart, Stethoscope, Settings } from 'lucide
  * Settings icon appears only on specific pages.
  */
 export default function NativeBottomNavigation() {
-  const [location] = useLocation();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-purple-bg flex justify-evenly items-center h-16 px-2 z-50">
       {/* Home */}
       <div className="flex items-center justify-center">
-        <Link to="/home" className="text-center">
+        <div 
+          onClick={() => navigate('/home')} 
+          className="text-center cursor-pointer"
+        >
           <div className="flex items-center justify-center">
-            <Home size={28} className={location === '/home' ? 'text-primary' : 'text-dark-purple/70'} />
+            <Home size={28} className={location.pathname === '/home' ? 'text-primary' : 'text-dark-purple/70'} />
           </div>
-        </Link>
+        </div>
       </div>
       
       {/* Pets */}
       <div className="flex items-center justify-center">
-        <Link to="/pets" className="text-center">
+        <div 
+          onClick={() => navigate('/pets')} 
+          className="text-center cursor-pointer"
+        >
           <div className="flex items-center justify-center">
-            <PawPrint size={28} className={location === '/pets' ? 'text-primary' : 'text-dark-purple/70'} />
+            <PawPrint size={28} className={location.pathname === '/pets' ? 'text-primary' : 'text-dark-purple/70'} />
           </div>
-        </Link>
+        </div>
       </div>
       
       {/* Center button for creating a post - hidden on specific pages */}
-      {location !== '/pets' && location !== '/vet-help' && location !== '/donations' && (
+      {location.pathname !== '/pets' && location.pathname !== '/vet-help' && location.pathname !== '/donations' && (
         <div className="flex items-center justify-center">
-          <Link to="/create-post" className="text-center">
+          <div 
+            onClick={() => navigate('/create-post')} 
+            className="text-center cursor-pointer"
+          >
             <div className="flex items-center justify-center relative">
               <div className="bg-primary rounded-full p-3 shadow-md">
                 <PlusCircle size={28} className="text-white" />
               </div>
             </div>
-          </Link>
+          </div>
         </div>
       )}
       
       {/* Donations (heart) */}
       <div className="flex items-center justify-center">
-        <Link to="/donations" className="text-center">
+        <div 
+          onClick={() => navigate('/donations')} 
+          className="text-center cursor-pointer"
+        >
           <div className="flex items-center justify-center">
-            <Heart size={28} className={location === '/donations' ? 'text-primary' : 'text-dark-purple/70'} />
+            <Heart size={28} className={location.pathname === '/donations' ? 'text-primary' : 'text-dark-purple/70'} />
           </div>
-        </Link>
+        </div>
       </div>
       
       {/* Vet & Help */}
       <div className="flex items-center justify-center">
-        <Link to="/vet-help" className="text-center">
+        <div 
+          onClick={() => navigate('/vet-help')} 
+          className="text-center cursor-pointer"
+        >
           <div className="flex items-center justify-center">
-            <Stethoscope size={28} className={location === '/vet-help' ? 'text-primary' : 'text-dark-purple/70'} />
+            <Stethoscope size={28} className={location.pathname === '/vet-help' ? 'text-primary' : 'text-dark-purple/70'} />
           </div>
-        </Link>
+        </div>
       </div>
       
       {/* Settings icon (only on specific pages) */}
-      {(location === '/pets' || location === '/vet-help' || location === '/donations') && (
+      {(location.pathname === '/pets' || location.pathname === '/vet-help' || location.pathname === '/donations') && (
         <div className="flex items-center justify-center">
-          <Link to="/settings" className="text-center">
+          <div 
+            onClick={() => navigate('/settings')} 
+            className="text-center cursor-pointer"
+          >
             <div className="flex items-center justify-center">
               <Settings size={28} className="text-dark-purple/70" />
             </div>
-          </Link>
+          </div>
         </div>
       )}
     </div>

@@ -2,19 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { 
-  Home, 
-  Search, 
-  PlusCircle, 
-  Heart, 
-  Stethoscope, 
   MoreHorizontal,
   MessageCircle,
   Send,
   Bookmark
 } from 'lucide-react';
 import { FaPaw } from 'react-icons/fa';
-import { Link, useLocation } from 'wouter';
-import { useAuth } from "@/hooks/useAuth";
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/authStore';
 import OptimizedImage from "@/components/media/OptimizedImage";
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
@@ -23,7 +18,6 @@ import CommentsModal from "@/components/comments/CommentsModal";
 import CommentSection from "@/components/comments/CommentSection";
 import Header from "../components/layout/Header";
 import { generateInitials } from "@/lib/utils";
-import { interactionStorage, postStorage } from "@/utils/localStorageManager";
 
 type Post = {
   id: number;
@@ -73,73 +67,23 @@ const DEMO_POSTS: Post[] = [
 ];
 
 export default function PetFeed() {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const { toast } = useToast();
-  const [location, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
 
-  // Initialize local interactions system
+  // Fetch posts (demo data)
   useEffect(() => {
-    if (user && user.id) {
-      // console.log(`Local interactions system initialized for user ${user.id}`);
-    }
-  }, [user]);
-
-  // Fetch posts from localStorage and add demo data
-  useEffect(() => {
-    const fetchPosts = async () => {
-      setIsLoading(true);
-      let allPosts: Post[] = [];
-
-      // Load posts from localStorage
-      try {
-        const savedPosts = postStorage.getAllPosts();
-        console.log('Loaded posts from localStorage:', savedPosts);
-        if (Array.isArray(savedPosts) && savedPosts.length > 0) {
-          allPosts = savedPosts.map(post => ({
-            id: post.id,
-            userId: post.userId,
-            content: post.content || '',
-            mediaUrls: Array.isArray(post.mediaUrls) ? post.mediaUrls : [],
-            mediaType: post.mediaType || 'image',
-            location: post.location || null,
-            visibilityType: post.visibilityType || 'public',
-            postType: post.postType || 'regular',
-            isStory: post.isStory || false,
-            user: {
-              id: post.user?.id || post.userId,
-              username: post.user?.username || 'User',
-              profileImage: post.user?.profileImage || '',
-            },
-            createdAt: post.createdAt || new Date().toISOString(),
-            likesCount: post.likesCount || 0,
-            commentsCount: post.commentsCount || 0,
-            isLiked: user ? interactionStorage.isPostLiked(user.id, post.id) : false,
-            isSaved: user ? interactionStorage.isPostSaved(user.id, post.id) : false,
-          }));
-        }
-      } catch (localError) {
-        console.error('Error loading posts from localStorage:', localError);
-      }
-
-      // Add demo posts if no posts exist
-      if (allPosts.length === 0) {
-        allPosts = DEMO_POSTS.map(post => ({
-          ...post,
-          isLiked: user ? interactionStorage.isPostLiked(user.id, post.id) : false,
-          isSaved: user ? interactionStorage.isPostSaved(user.id, post.id) : false,
-        }));
-      }
-
-      setPosts(allPosts);
+    setIsLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      setPosts(DEMO_POSTS);
       setIsLoading(false);
-    };
-
-    fetchPosts();
-  }, [user]);
+    }, 500);
+  }, []);
 
   const toggleLike = async (postId: number) => {
     if (!user) {
@@ -148,26 +92,15 @@ export default function PetFeed() {
         description: "Login to like posts",
         variant: "destructive",
       });
-      setLocation("/auth/login");
+      navigate("/auth/login");
       return;
     }
 
-    const currentPost = posts.find(p => p.id === postId);
-    if (!currentPost) return;
-
-    const newIsLiked = !currentPost.isLiked;
-
-    // Update local storage
-    if (newIsLiked) {
-      interactionStorage.likePost(user.id, postId);
-    } else {
-      interactionStorage.unlikePost(user.id, postId);
-    }
-
-    // Update UI
+    // Update UI optimistically
     setPosts(prev =>
       prev.map(post => {
         if (post.id === postId) {
+          const newIsLiked = !post.isLiked;
           return {
             ...post,
             isLiked: newIsLiked,
@@ -186,27 +119,15 @@ export default function PetFeed() {
         description: "Login to save posts",
         variant: "destructive",
       });
-      setLocation("/auth/login");
+      navigate("/auth/login");
       return;
     }
 
-    const currentPost = posts.find(p => p.id === postId);
-    if (!currentPost) return;
-
-    const newIsSaved = !currentPost.isSaved;
-
-    // Update local storage
-    if (newIsSaved) {
-      interactionStorage.savePost(user.id, postId);
-    } else {
-      interactionStorage.unsavePost(user.id, postId);
-    }
-
-    // Update UI
+    // Update UI optimistically
     setPosts(prev =>
       prev.map(post => {
         if (post.id === postId) {
-          return { ...post, isSaved: newIsSaved };
+          return { ...post, isSaved: !post.isSaved };
         }
         return post;
       })
@@ -228,7 +149,7 @@ export default function PetFeed() {
         ) : posts.length === 0 ? (
           <div className="p-8 text-center">
             <p className="text-gray-500 mb-4">No posts available right now.</p>
-            <Link href="/create-post">
+            <Link to="/create-post">
               <button className="px-4 py-2 bg-orange-500 text-white rounded-full">
                 Create a post
               </button>
@@ -242,7 +163,7 @@ export default function PetFeed() {
                 <div className="flex items-center">
                   <Avatar
                     className="h-8 w-8 mr-2 cursor-pointer hover:opacity-80 transition-opacity"
-                    onClick={() => post.user.id && setLocation(`/profile/${post.user.id}`)}
+                    onClick={() => post.user.id && navigate(`/profile/${post.user.id}`)}
                   >
                     {post.user.profileImage ? (
                       <AvatarImage src={post.user.profileImage} alt={post.user.username} />
@@ -252,7 +173,7 @@ export default function PetFeed() {
                   </Avatar>
                   <span
                     className="font-medium text-sm cursor-pointer hover:text-orange-500 transition-colors"
-                    onClick={() => post.user.id && setLocation(`/profile/${post.user.id}`)}
+                    onClick={() => post.user.id && navigate(`/profile/${post.user.id}`)}
                   >
                     {post.user.username}
                   </span>
@@ -344,16 +265,7 @@ export default function PetFeed() {
                       })
                     );
                   }}
-                  initialComments={user ? interactionStorage.getPostComments(post.id).map(comment => ({
-                    id: comment.id,
-                    content: comment.content,
-                    username: comment.username || 'User',
-                    userPhotoUrl: comment.userPhotoUrl,
-                    createdAt: comment.createdAt,
-                    likesCount: comment.likesCount || 0,
-                    isLiked: interactionStorage.isCommentLiked(user.id, comment.id),
-                    userId: comment.userId,
-                  })) : []}
+                  initialComments={[]}
                 />
               </div>
             </Card>
@@ -378,16 +290,7 @@ export default function PetFeed() {
               })
             );
           }}
-          initialComments={user ? interactionStorage.getPostComments(selectedPostId).map(comment => ({
-            id: comment.id,
-            content: comment.content,
-            username: comment.username || 'User',
-            userPhotoUrl: comment.userPhotoUrl,
-            createdAt: comment.createdAt,
-            likesCount: comment.likesCount || 0,
-            isLiked: interactionStorage.isCommentLiked(user.id, comment.id),
-            userId: comment.userId,
-          })) : []}
+          initialComments={[]}
         />
       )}
     </div>

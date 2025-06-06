@@ -1,6 +1,4 @@
-import React, { useEffect } from 'react';
-import { StatusBar, Style as StatusBarStyle } from '@capacitor/status-bar';
-import { Capacitor } from '@capacitor/core';
+import React from 'react';
 
 interface MobileStatusBarProps {
   style?: 'light' | 'dark';
@@ -15,30 +13,7 @@ const MobileStatusBar: React.FC<MobileStatusBarProps> = ({
   style = 'light',
   backgroundColor = '#FFFFFF'
 }) => {
-  useEffect(() => {
-    // Only run on native platforms (Android/iOS)
-    if (Capacitor.isNativePlatform()) {
-      const setupStatusBar = async () => {
-        try {
-          // Set the status bar style (light or dark content)
-          await StatusBar.setStyle({
-            style: style === 'light' ? StatusBarStyle.Light : StatusBarStyle.Dark
-          });
-          
-          // On Android, also set the background color
-          if (Capacitor.getPlatform() === 'android') {
-            await StatusBar.setBackgroundColor({ color: backgroundColor });
-          }
-        } catch (error) {
-          console.error('Error setting status bar:', error);
-        }
-      };
-      
-      setupStatusBar();
-    }
-  }, [style, backgroundColor]);
-
-  // This component does not render anything visible
+  // This is a simplified version without Capacitor
   return null;
 };
 

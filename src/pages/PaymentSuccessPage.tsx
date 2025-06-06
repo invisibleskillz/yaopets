@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'wouter';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle, Heart, Home } from 'lucide-react';
 
 export default function PaymentSuccessPage() {
-  const [, navigate] = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [paymentDetails, setPaymentDetails] = useState({
     amount: '',
     title: 'YaoPets Donation'
@@ -12,9 +13,9 @@ export default function PaymentSuccessPage() {
 
   useEffect(() => {
     // Extract payment details from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const amount = urlParams.get('amount');
-    const title = urlParams.get('title');
+    const searchParams = new URLSearchParams(location.search);
+    const amount = searchParams.get('amount');
+    const title = searchParams.get('title');
 
     if (amount) {
       setPaymentDetails({
@@ -35,7 +36,7 @@ export default function PaymentSuccessPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [navigate]);
+  }, [navigate, location.search]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center px-4">

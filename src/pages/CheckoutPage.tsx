@@ -4,7 +4,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { CheckoutForm } from '@/components/CheckoutForm';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { useLocation } from 'wouter';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // Load Stripe with public key
 const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
@@ -12,16 +12,17 @@ console.log('🔑 Loading Stripe with key:', stripeKey ? 'Key found' : 'Key not 
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 export default function CheckoutPage() {
-  const [, navigate] = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [clientSecret, setClientSecret] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
   // Extract URL parameters
-  const urlParams = new URLSearchParams(window.location.search);
-  const amount = parseInt(urlParams.get('amount') || '1000');
-  const title = urlParams.get('title') || 'YaoPets Donation';
-  const fundraiserId = urlParams.get('fundraiser') || '';
+  const searchParams = new URLSearchParams(location.search);
+  const amount = parseInt(searchParams.get('amount') || '1000');
+  const title = searchParams.get('title') || 'YaoPets Donation';
+  const fundraiserId = searchParams.get('fundraiser') || '';
 
   useEffect(() => {
     if (!stripePromise) {

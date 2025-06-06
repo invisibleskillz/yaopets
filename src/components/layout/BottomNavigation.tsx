@@ -1,11 +1,12 @@
-import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import CreatePostModal from "@/components/modals/CreatePostModal";
 import { Home, PawPrint, PlusSquare, Heart, User } from "lucide-react";
 
 export default function BottomNavigation() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [createPostModalOpen, setCreatePostModalOpen] = useState(false);
 
   // Navigation items with icons and labels
@@ -27,16 +28,16 @@ export default function BottomNavigation() {
             const isActive = location.pathname === item.path || (item.path === "/" && location.pathname === "/home");
 
             return (
-              <Link
+              <div
                 key={item.path}
-                to={item.isAddButton ? "#" : item.path}
-                onClick={(e) => {
+                onClick={() => {
                   if (item.isAddButton) {
-                    e.preventDefault();
                     setCreatePostModalOpen(true);
+                  } else {
+                    navigate(item.path);
                   }
                 }}
-                className="flex-1"
+                className="flex-1 cursor-pointer"
               >
                 <div className="flex flex-col items-center justify-center py-2 px-1 min-h-[50px]">
                   {item.isAddButton ? (
@@ -68,7 +69,7 @@ export default function BottomNavigation() {
                     {item.label}
                   </span>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>
