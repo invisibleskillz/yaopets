@@ -264,7 +264,7 @@ export default function AdminUsers() {
                         <TableCell>{getStatusBadge(user.status)}</TableCell>
                         <TableCell>
                           {user.verified ? (
-                            <CheckCircle className="text-green-500" size={18} />
+                            <CheckCircle className="text-green-500\" size={18} />
                           ) : (
                             <XCircle className="text-red-500" size={18} />
                           )}
