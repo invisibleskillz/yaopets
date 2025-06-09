@@ -1,69 +1,107 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
-async function throwIfResNotOk(res: Response) {
-  if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+// Create axios instance
+const axiosInstance = axios.create({
+  baseURL: '/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add request interceptor to add auth token
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Add response interceptor to handle errors
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Handle 401 Unauthorized errors
+    if (error.response && error.response.status === 401) {
+      // Clear token and redirect to login
+      localStorage.removeItem('token');
+      window.location.href = '/auth/login';
+    }
+    return Promise.reject(error);
   }
-}
+);
 
+// API request function
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  console.log(`Fazendo requisição para: ${url}`, { method, data });
-  
-  const res = await fetch(url, {
-    method,
-    headers: {
-      ...(data ? { "Content-Type": "application/json" } : {}),
-      "X-Requested-With": "XMLHttpRequest"
-    },
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
-
-  console.log(`Resposta para ${url}:`, { status: res.status, ok: res.ok });
-  
-  // Não lançar erro automaticamente para que possamos tratar no LoginPage
-  if (url === "/api/auth/login") {
-    return res;
+  try {
+    const config = {
+      method,
+      url,
+      data,
+      headers: {
+        ...(data ? { "Content-Type": "application/json" } : {}),
+        "X-Requested-With": "XMLHttpRequest"
+      },
+    };
+    
+    const response = await axiosInstance(config);
+    
+    // Convert axios response to fetch Response
+    return new Response(JSON.stringify(response.data), {
+      status: response.status,
+      statusText: response.statusText,
+      headers: new Headers(response.headers as any),
+    });
+  } catch (error: any) {
+    if (error.response) {
+      // Return error response
+      return new Response(JSON.stringify(error.response.data), {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        headers: new Headers(error.response.headers),
+      });
+    }
+    
+    // Network error or other error
+    throw error;
   }
-  
-  await throwIfResNotOk(res);
-  return res;
 }
 
+// Query function for TanStack Query
 type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
-  on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
-  ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
-      credentials: "include",
-    });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+export const getQueryFn = <T>({ on401 = "throw" as UnauthorizedBehavior }) => {
+  return async ({ queryKey }: { queryKey: (string | object)[] }) => {
+    try {
+      const [endpoint, params] = queryKey;
+      const url = typeof endpoint === 'string' ? endpoint : '';
+      
+      const response = await axiosInstance.get(url, { params });
+      return response.data as T;
+    } catch (error: any) {
+      if (error.response && error.response.status === 401 && on401 === "returnNull") {
+        return null;
+      }
+      throw error;
     }
-
-    await throwIfResNotOk(res);
-    return await res.json();
   };
+};
 
+// Create query client
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
-      refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
-    },
-    mutations: {
-      retry: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
     },
   },
 });
